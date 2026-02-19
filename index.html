@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinanceGod</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; }
+    #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 16px; }
+    #auth-screen h1 { font-size: 2.5rem; color: #00d4aa; letter-spacing: 2px; }
+    .auth-box { background: #1a1a1a; padding: 40px; border-radius: 16px; width: 360px; display: flex; flex-direction: column; gap: 12px; }
+    .auth-box input { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; font-size: 14px; }
+    .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+    .btn-primary { background: #00d4aa; color: #000; }
+    .btn-primary:hover { background: #00b894; }
+    .btn-secondary { background: #222; color: #ccc; border: 1px solid #333; }
+    .btn-secondary:hover { background: #2a2a2a; }
+    .auth-toggle { text-align: center; font-size: 13px; color: #888; cursor: pointer; }
+    .auth-toggle span { color: #00d4aa; }
+    #app-screen { display: none; }
+    header { background: #1a1a1a; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; }
+    header h1 { font-size: 1.4rem; color: #00d4aa; }
+    .header-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #888; }
+    #group-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 60px); gap: 16px; }
+    #group-screen h2 { color: #fff; font-size: 1.4rem; }
+    .group-box { background: #1a1a1a; padding: 32px; border-radius: 16px; width: 380px; display: flex; flex-direction: column; gap: 12px; }
+    .group-box input { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; font-size: 14px; }
+    .divider { text-align: center; color: #555; font-size: 13px; margin: 4px 0; }
+    #main-content { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .top-bar { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+    .top-bar input { flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; font-size: 14px; }
+    #search-results { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; margin-bottom: 16px; display: none; }
+    .search-item { padding: 10px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; font-size: 14px; }
+    .search-item:hover { background: #222; }
+    .search-item:last-child { border-bottom: none; }
+    #watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .stock-card { background: #1a1a1a; border-radius: 12px; padding: 20px; border: 1px solid #222; transition: border-color 0.2s; }
+    .stock-card:hover { border-color: #00d4aa33; }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .ticker { font-size: 1.2rem; font-weight: 700; color: #fff; }
+    .company-name { font-size: 12px; color: #666; margin-top: 2px; }
+    .remove-btn { background: none; border: none; color: #555; cursor: pointer; font-size: 18px; }
+    .remove-btn:hover { color: #e74c3c; }
+    .price { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .change { font-size: 13px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+    .change.positive { background: #00d4aa22; color: #00d4aa; }
+    .change.negative { background: #e74c3c22; color: #e74c3c; }
+    .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .news-section { margin-bottom: 16px; }
+    .section-title { font-size: 11px; text-transform: uppercase; color: #555; letter-spacing: 1px; margin-bottom: 8px; }
+    .news-item { font-size: 12px; color: #aaa; padding: 6px 0; border-bottom: 1px solid #1f1f1f; line-height: 1.4; }
+    .news-item:last-child { border-bottom: none; }
+    .news-item a { color: #00d4aa; text-decoration: none; }
+    .news-item a:hover { text-decoration: underline; }
+    .news-time { font-size: 11px; color: #555; }
+    .comment { background: #111; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
+    .comment-author { font-weight: 600; color: #00d4aa; font-size: 12px; }
+    .comment-text { color: #ccc; margin-top: 2px; }
+    .comment-time { font-size: 11px; color: #555; }
+    .comment-input-row { display: flex; gap: 8px; margin-top: 8px; }
+    .comment-input-row input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; font-size: 13px; }
+    .comment-input-row button { padding: 8px 14px; border-radius: 8px; background: #00d4aa; border: none; color: #000; font-weight: 600; cursor: pointer; }
+    .error-msg { color: #e74c3c; font-size: 13px; padding: 12px; background: #e74c3c11; border-radius: 8px; margin-bottom: 12px; display: none; }
+    .loading { color: #555; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <h1>💹 FinanceGod</h1>
+  <div class="auth-box">
+    <h2 id="auth-title" style="color:#fff;font-size:1.1rem;">Bejelentkezés</h2>
+    <div id="auth-error" class="error-msg"></div>
+    <input type="email" id="auth-email" placeholder="Email cím" />
+    <input type="password" id="auth-password" placeholder="Jelszó" />
+    <input type="text" id="auth-name" placeholder="Becenév" style="display:none;" />
+    <button class="btn btn-primary" onclick="handleAuth()">Belépés</button>
+    <p class="auth-toggle" onclick="toggleAuthMode()">Nincs még fiókod? <span id="auth-toggle-text">Regisztráció</span></p>
+  </div>
+</div>
+
+<div id="app-screen">
+  <header>
+    <h1>💹 FinanceGod</h1>
+    <div class="header-right">
+      <span id="user-email-display"></span>
+      <button class="btn btn-secondary" onclick="leaveGroup()" id="leave-group-btn" style="display:none;">Kilépés csoportból</button>
+      <button class="btn btn-secondary" onclick="doSignOut()">Kijelentkezés</button>
+    </div>
+  </header>
+
+  <div id="group-screen">
+    <h2>Csatlakozz egy csoporthoz</h2>
+    <div class="group-box">
+      <div id="group-error" class="error-msg"></div>
+      <input type="text" id="group-name-input" placeholder="Csoport neve (új létrehozáshoz)" />
+      <button class="btn btn-primary" onclick="createGroup()">Új csoport létrehozása</button>
+      <div class="divider">— vagy —</div>
+      <input type="text" id="invite-input" placeholder="Meghívó kód beírása" style="text-transform:uppercase;" />
+      <button class="btn btn-secondary" onclick="joinGroup()">Csatlakozás</button>
+    </div>
+  </div>
+
+  <div id="main-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h2 id="group-name-display" style="color:#fff;font-size:1.2rem;"></h2>
+        <div style="font-size:12px;color:#555;margin-top:4px;">Meghívó kód: <span id="invite-code-display" style="color:#00d4aa;font-weight:700;letter-spacing:2px;"></span></div>
+      </div>
+    </div>
+    <div class="top-bar">
+      <input type="text" id="search-input" placeholder="Részvény keresése (pl. Apple, TSLA...)" oninput="searchStocks()" />
+      <button class="btn btn-primary" onclick="refreshAll()">Frissítés</button>
+    </div>
+    <div id="search-results"></div>
+    <div id="watchlist-grid"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, query, orderBy, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8yUqh9wnfbVPThe7ZORcZWmdHcmQLHZU",
+    authDomain: "financegod-4a16e.firebaseapp.com",
+    projectId: "financegod-4a16e",
+    storageBucket: "financegod-4a16e.firebasestorage.app",
+    messagingSenderId: "189154500661",
+    appId: "1:189154500661:web:848ca07589cf599f56d17c"
+  };
+
+  const FINNHUB_KEY = "d6b2nk9r01qnr27jesl0d6b2nk9r01qnr27jeslg";
+  const DEFAULT_STOCKS = ["AAPL","TSLA","NVDA","AMZN","MSFT","META","GOOGL","NFLX","AMD","JPM","V","DIS","PYPL","COIN","UBER"];
+
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  const db = getFirestore(fbApp);
+
+  let currentUser = null;
+  let currentGroup = null;
+  let watchlistUnsub = null;
+  let isLoginMode = true;
+  const commentUnsubs = {};
+
+  window.toggleAuthMode = () => {
+    isLoginMode = !isLoginMode;
+    document.getElementById("auth-title").textContent = isLoginMode ? "Bejelentkezés" : "Regisztráció";
+    document.getElementById("auth-toggle-text").textContent = isLoginMode ? "Regisztráció" : "Vissza a belépéshez";
+    document.getElementById("auth-name").style.display = isLoginMode ? "none" : "block";
+    document.querySelector("#auth-screen .btn-primary").textContent = isLoginMode ? "Belépés" : "Regisztráció";
+    document.getElementById("auth-error").style.display = "none";
+  };
+
+  window.handleAuth = async () => {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const name = document.getElementById("auth-name").value.trim();
+    const errEl = document.getElementById("auth-error");
+    errEl.style.display = "none";
+    try {
+      if (isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        if (!name) { errEl.textContent = "Add meg a becenevedet!"; errEl.style.display = "block"; return; }
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+      }
+    } catch(e) {
+      errEl.textContent = e.message;
+      errEl.style.display = "block";
+    }
+  };
+
+  window.doSignOut = async () => {
+    if (watchlistUnsub) watchlistUnsub();
+    Object.values(commentUnsubs).forEach(u => u());
+    await signOut(auth);
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById("auth-screen").style.display = "none";
+      document.getElementById("app-screen").style.display = "block";
+      document.getElementById("user-email-display").textContent = user.displayName || user.email;
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().groupId) {
+        const groupDoc = await getDoc(doc(db, "groups", userDoc.data().groupId));
+        if (groupDoc.exists()) { loadGroup({ id: groupDoc.id, ...groupDoc.data() }); return; }
+      }
+      showGroupScreen();
+    } else {
+      currentUser = null; currentGroup = null;
+      document.getElementById("auth-screen").style.display = "flex";
+      document.getElementById("app-screen").style.display = "none";
+    }
+  });
+
+  function showGroupScreen() {
+    document.getElementById("group-screen").style.display = "flex";
+    document.getElementById("main-content").style.display = "none";
+    document.getElementById("leave-group-btn").style.display = "none";
+  }
+
+  function generateCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
+
+  window.createGroup = async () => {
+    const name = document.getElementById("group-name-input").value.trim();
+    const errEl = document.getElementById("group-error");
+    if (!name) { errEl.textContent = "Add meg a csoport nevét!"; errEl.style.display = "block"; return; }
+    errEl.style.display = "none";
+    const inviteCode = generateCode();
+    const groupRef = await addDoc(collection(db, "groups"), { name, inviteCode, createdBy: currentUser.uid, watchlist: DEFAULT_STOCKS });
+    await setDoc(doc(db, "users", currentUser.uid), { groupId: groupRef.id }, { merge: true });
+    loadGroup({ id: groupRef.id, name, inviteCode, watchlist: DEFAULT_STOCKS });
+  };
+
+  window.joinGroup = async () => {
+    const code = document.getElementById("invite-input").value.trim().toUpperCase();
+    const errEl = document.getElementById("group-error");
+    if (!code) { errEl.textContent = "Add meg a meghívó kódot!"; errEl.style.display = "block"; return; }
+    errEl.style.display = "none";
+    const q = query(collection(db, "groups"), where("inviteCode", "==", code));
+    const results = await getDocs(q);
+    if (results.empty) { errEl.textContent = "Nem találtunk ilyen kódot!"; errEl.style.display = "block"; return; }
+    const groupDoc = results.docs[0];
+    await setDoc(doc(db, "users", currentUser.uid), { groupId: groupDoc.id }, { merge: true });
+    loadGroup({ id: groupDoc.id, ...groupDoc.data() });
+  };
+
+  window.leaveGroup = async () => {
+    if (!confirm("Biztosan kilépsz a csoportból?")) return;
+    if (watchlistUnsub) watchlistUnsub();
+    await setDoc(doc(db, "users", currentUser.uid), { groupId: null }, { merge: true });
+    currentGroup = null;
+    showGroupScreen();
+  };
+
+  function loadGroup(group) {
+    currentGroup = group;
+    document.getElementById("group-screen").style.display = "none";
+    document.getElementById("main-content").style.display = "block";
+    document.getElementById("leave-group-btn").style.display = "inline-block";
+    document.getElementById("group-name-display").textContent = "📊 " + group.name;
+    document.getElementById("invite-code-display").textContent = group.inviteCode;
+    listenWatchlist();
+  }
+
+  function listenWatchlist() {
+    if (watchlistUnsub) watchlistUnsub();
+    watchlistUnsub = onSnapshot(doc(db, "groups", currentGroup.id), (snap) => {
+      if (snap.exists()) {
+        currentGroup = { ...currentGroup, ...snap.data() };
+        renderWatchlist(currentGroup.watchlist || []);
+      }
+    });
+  }
+
+  async function renderWatchlist(tickers) {
+    const grid = document.getElementById("watchlist-grid");
+    const existing = [...grid.querySelectorAll(".stock-card")].map(c => c.dataset.ticker);
+    for (const ticker of tickers) {
+      if (!existing.includes(ticker)) {
+        grid.appendChild(createCard(ticker));
+        loadStockData(ticker);
+        loadNews(ticker);
+        listenComments(ticker);
+      }
+    }
+    for (const ticker of existing) {
+      if (!tickers.includes(ticker)) {
+        const card = grid.querySelector(`[data-ticker="${ticker}"]`);
+        if (card) card.remove();
+      }
+    }
+  }
+
+  function createCard(ticker) {
+    const card = document.createElement("div");
+    card.className = "stock-card";
+    card.dataset.ticker = ticker;
+    card.innerHTML = `
+      <div class="card-header">
+        <div>
+          <div class="ticker">${ticker}</div>
+          <div class="company-name" id="name-${ticker}">Betöltés...</div>
+        </div>
+        <button class="remove-btn" onclick="removeTicker('${ticker}')">✕</button>
+      </div>
+      <div class="price-row">
+        <span class="price" id="price-${ticker}">—</span>
+        <span class="change" id="change-${ticker}">—</span>
+      </div>
+      <div class="news-section">
+        <div class="section-title">Hírek</div>
+        <div id="news-${ticker}" class="loading">Betöltés...</div>
+      </div>
+      <div class="comments-section">
+        <div class="section-title">Kommentek</div>
+        <div id="comments-${ticker}"></div>
+        <div class="comment-input-row">
+          <input type="text" id="comment-input-${ticker}" placeholder="Írj valamit..." onkeypress="if(event.key==='Enter')addComment('${ticker}')" />
+          <button onclick="addComment('${ticker}')">Küld</button>
+        </div>
+      </div>`;
+    return card;
+  }
+
+  async function loadStockData(ticker) {
+    try {
+      const [quote, profile] = await Promise.all([
+        fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_KEY}`).then(r => r.json()),
+        fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${ticker}&token=${FINNHUB_KEY}`).then(r => r.json())
+      ]);
+      const priceEl = document.getElementById(`price-${ticker}`);
+      const changeEl = document.getElementById(`change-${ticker}`);
+      const nameEl = document.getElementById(`name-${ticker}`);
+      if (priceEl && quote.c) {
+        priceEl.textContent = `$${quote.c.toFixed(2)}`;
+        const pct = quote.dp ? quote.dp.toFixed(2) : "0.00";
+        const isPos = parseFloat(pct) >= 0;
+        changeEl.textContent = `${isPos ? "+" : ""}${pct}%`;
+        changeEl.className = `change ${isPos ? "positive" : "negative"}`;
+      }
+      if (nameEl && profile.name) nameEl.textContent = profile.name;
+    } catch(e) {}
+  }
+
+  async function loadNews(ticker) {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const from = new Date(Date.now() - 7*24*60*60*1000).toISOString().split("T")[0];
+      const data = await fetch(`https://finnhub.io/api/v1/company-news?symbol=${ticker}&from=${from}&to=${today}&token=${FINNHUB_KEY}`).then(r => r.json());
+      const el = document.getElementById(`news-${ticker}`);
+      if (!el) return;
+      if (!data || data.length === 0) { el.innerHTML = "<span style='color:#555;font-size:12px;'>Nincs friss hír</span>"; return; }
+      el.innerHTML = data.slice(0, 3).map(n => `
+        <div class="news-item">
+          <a href="${n.url}" target="_blank">${n.headline}</a>
+          <div class="news-time">${new Date(n.datetime * 1000).toLocaleDateString("hu-HU")}</div>
+        </div>`).join("");
+    } catch(e) {}
+  }
+
+  window.refreshAll = () => { (currentGroup?.watchlist || []).forEach(t => { loadStockData(t); loadNews(t); }); };
+
+  let searchTimeout;
+  window.searchStocks = () => {
+    clearTimeout(searchTimeout);
+    const q = document.getElementById("search-input").value.trim();
+    if (q.length < 2) { document.getElementById("search-results").style.display = "none"; return; }
+    searchTimeout = setTimeout(async () => {
+      const data = await fetch(`https://finnhub.io/api/v1/search?q=${q}&token=${FINNHUB_KEY}`).then(r => r.json());
+      const el = document.getElementById("search-results");
+      if (!data.result || data.result.length === 0) { el.style.display = "none"; return; }
+      el.style.display = "block";
+      el.innerHTML = data.result.slice(0, 6).map(s => `
+        <div class="search-item" onclick="addTicker('${s.symbol}')">
+          <span><strong>${s.symbol}</strong> — ${s.description}</span>
+          <span style="color:#00d4aa;font-size:12px;">+ Hozzáadás</span>
+        </div>`).join("");
+    }, 400);
+  };
+
+  window.addTicker = async (ticker) => {
+    const watchlist = currentGroup.watchlist || [];
+    if (watchlist.includes(ticker)) return;
+    await setDoc(doc(db, "groups", currentGroup.id), { watchlist: [...watchlist, ticker] }, { merge: true });
+    document.getElementById("search-input").value = "";
+    document.getElementById("search-results").style.display = "none";
+  };
+
+  window.removeTicker = async (ticker) => {
+    if (!confirm(`Törlöd a ${ticker} részvényt?`)) return;
+    const updated = (currentGroup.watchlist || []).filter(t => t !== ticker);
+    await setDoc(doc(db, "groups", currentGroup.id), { watchlist: updated }, { merge: true });
+  };
+
+  function listenComments(ticker) {
+    if (commentUnsubs[ticker]) return;
+    const q = query(collection(db, "groups", currentGroup.id, "comments_" + ticker), orderBy("createdAt"));
+    commentUnsubs[ticker] = onSnapshot(q, (snap) => {
+      const el = document.getElementById(`comments-${ticker}`);
+      if (!el) return;
+      el.innerHTML = snap.docs.map(d => {
+        const c = d.data();
+        return `<div class="comment">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="comment-author">${c.author}</span>
+            <span class="comment-time">${c.createdAt?.toDate ? c.createdAt.toDate().toLocaleTimeString("hu-HU",{hour:"2-digit",minute:"2-digit"}) : ""}</span>
+          </div>
+          <div class="comment-text">${c.text}</div>
+        </div>`;
+      }).join("");
+    });
+  }
+
+  window.addComment = async (ticker) => {
+    const input = document.getElementById(`comment-input-${ticker}`);
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    await addDoc(collection(db, "groups", currentGroup.id, "comments_" + ticker), {
+      text,
+      author: currentUser.displayName || currentUser.email,
+      createdAt: serverTimestamp()
+    });
+  };
+</script>
+</body>
+</html>
